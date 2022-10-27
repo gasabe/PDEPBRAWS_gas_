@@ -1,6 +1,149 @@
+import main.*
 
-test "testX" {
+//1)	Saber si una misión puede ser superada.
 
-	assert.that(true)
+
+describe"Punto1"{
+	//destreza =fuerza +la mitad de fuerza
+	//destreza =rango >100
+	//se supera si : el personaje tiene estrategia o si su destreza > dificultad
+	const roy 	 = new Arquero	 (rango = 101,  agilidad = 20, 		cantidadDeCopas = 10)
+	const lucas	 = new Ballestero(rango = 50, 	agilidad =1, 		cantidadDeCopas = 10)
+	const gustavo= new Guerrero(estrategia = true, 	fuerza = 120, 	cantidadDeCopas = 10)
+	const masu	 = new Guerrero(estrategia = false, fuerza = 120, 	cantidadDeCopas = 10)
+//	const ary= new Ballestero(rango = 10, agilidad = 20, cantidadDeCopas = 10)
+
+	test"roy supera la mision Individual"{
+		const mision= new MisionIndividual(dificultad = 100, personaje = roy)
+		assert.that(mision.puedeSerSuperada())
+		
+	}
+	test"masu  no supera la mision Individual"{
+		const mision= new MisionIndividual(dificultad = 1000, personaje = masu )
+		assert.notThat(mision.puedeSerSuperada())
+		
+	}
+		test"lucas  no supera la mision Individual"{
+		const mision= new MisionIndividual(dificultad = 101, personaje = lucas )
+		assert.notThat(mision.puedeSerSuperada())
+		
+	}
+	
+	test"mision grupal superada"{
+		const mision= new MisionEnEquipo (personajes = [roy,masu,gustavo])
+		assert.that(mision.puedeSerSuperada())
+		
+	}
+	
+		test"mision grupal no puede ser superada"{
+		const mision= new MisionEnEquipo (personajes = [roy,masu,lucas])
+		assert.notThat(mision.puedeSerSuperada())
+		
+	}
+	
 
 }
+
+
+describe"gano ,no gano , error de excepcion  "{
+	test" roy tiene menos copas"{
+		const roy = new Arquero(rango = 101, agilidad = 20, cantidadDeCopas = 9)
+		const mision= new MisionIndividual(dificultad = 100, personaje = roy)
+		assert.throwsExceptionWithMessage("Mision no puede comenzar", {mision.validoCopas()})
+		
+	}
+	test" roy gana copas"{
+		const roy = new Arquero(rango = 101, agilidad = 20, cantidadDeCopas = 10)
+		const mision= new MisionIndividual(dificultad = 100, personaje = roy)
+		mision.iniciarMision()
+		assert.equals(210,roy.cantidadDeCopas())
+		
+	}
+		test" masu no gana copas"{
+		const masu = new Arquero(rango = 10, agilidad = 2, cantidadDeCopas = 10)
+		const muchachada= new MisionIndividual(dificultad = 100, personaje = masu)
+		muchachada.iniciarMision()
+		assert.equals(0,masu.cantidadDeCopas())
+		
+	}
+	
+}
+
+describe"tengo misiones"{
+	test" misiones en equuipo bonus"{
+		const roy 	 = new Arquero	 (rango = 110,  agilidad = 20, 		cantidadDeCopas = 20)
+		const lucas	 = new Ballestero(rango = 110, 	agilidad =20, 		cantidadDeCopas = 20)
+		const ary	 = new Ballestero(rango = 110, 	agilidad = 20, 		cantidadDeCopas = 20)
+		const gustavo= new Guerrero	 (estrategia = true, fuerza = 120, 	cantidadDeCopas = 20)
+		const masu	 = new Guerrero	 (estrategia = true, fuerza = 120, 	cantidadDeCopas = 20)
+		const muchachada= [roy,lucas,gustavo,masu,ary]
+		const misionMuchachada= new MisionEnEquipoBoost(multiplicador = 2, personajes = muchachada)
+		misionMuchachada.iniciarMision()
+		assert.equals(40,roy.cantidadDeCopas())
+		assert.equals(40,lucas.cantidadDeCopas())
+		assert.equals(40,gustavo.cantidadDeCopas())
+		assert.equals(40,masu.cantidadDeCopas())
+		assert.equals(40,ary.cantidadDeCopas())
+		
+		
+		
+	}
+		test" misiones en equipo bonus"{
+		const roy 	 = new Arquero	 (rango = 110,  agilidad = 20, 		cantidadDeCopas = 20)
+		const lucas	 = new Ballestero(rango = 110, 	agilidad =20, 		cantidadDeCopas = 20)
+		const ary	 = new Ballestero(rango = 110, 	agilidad = 20, 		cantidadDeCopas = 20)
+		const gustavo= new Guerrero	 (estrategia = true, fuerza = 120, 	cantidadDeCopas = 20)
+		const masu	 = new Guerrero	 (estrategia = true, fuerza = 120, 	cantidadDeCopas = 20)
+		const muchachada= [roy,lucas,gustavo,masu,ary]
+		const misionMuchachada= new MisionEnEquipoBonus( personajes = muchachada)
+		misionMuchachada.iniciarMision()
+		assert.equals(35,roy.cantidadDeCopas())
+		assert.equals(35,lucas.cantidadDeCopas())
+		assert.equals(35,gustavo.cantidadDeCopas())
+		assert.equals(35,masu.cantidadDeCopas())
+		assert.equals(35,ary.cantidadDeCopas())
+		
+	}
+	
+		test" mision individual bonus "{
+		const gustavo= new Guerrero	 (estrategia = true, fuerza = 120, 	cantidadDeCopas = 20)
+		const mision= new MisionIndividualBonus(dificultad = 100, personaje = gustavo)
+		mision.iniciarMision()
+		assert.that(mision.puedeSerSuperada())
+		assert.equals(221,gustavo.cantidadDeCopas())
+	}
+		test" mision individual boost"{
+		const gustavo= new Guerrero	 (estrategia = true, fuerza = 120, 	cantidadDeCopas = 20)
+		const mision= new MisionIndividualBoost(multiplicador = 2, dificultad = 100, personaje = gustavo)
+		mision.iniciarMision()
+		assert.that(mision.puedeSerSuperada())
+		assert.equals(420,gustavo.cantidadDeCopas())
+	}
+		test" misiones en equipo normal"{
+		const roy 	 = new Arquero	 (rango = 110,  agilidad = 20, 		cantidadDeCopas = 20)
+		const lucas	 = new Ballestero(rango = 110, 	agilidad =20, 		cantidadDeCopas = 20)
+		const ary	 = new Ballestero(rango = 110, 	agilidad = 20, 		cantidadDeCopas = 20)
+		const gustavo= new Guerrero	 (estrategia = true, fuerza = 120, 	cantidadDeCopas = 20)
+		const masu	 = new Guerrero	 (estrategia = true, fuerza = 120, 	cantidadDeCopas = 20)
+		const muchachada= [roy,lucas,gustavo,masu,ary]
+		const misionMuchachada= new MisionEnEquipo(personajes = muchachada)
+		misionMuchachada.iniciarMision()
+		assert.equals(30,roy.cantidadDeCopas())
+		assert.equals(30,lucas.cantidadDeCopas())
+		assert.equals(30,gustavo.cantidadDeCopas())
+		assert.equals(30,masu.cantidadDeCopas())
+		assert.equals(30,ary.cantidadDeCopas())
+		
+	}
+	
+	
+	
+	/*
+	 En este programa el polimofismo se aplico como por ejemplo copasEnJuego() o validoCopas() los niveles cada uno de ellos 
+	 entiende la interfaz pero con un comportamiento diferente.
+	 
+	 */
+	
+}
+
+
